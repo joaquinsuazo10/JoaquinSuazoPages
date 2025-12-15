@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Flappy Bird Deluxe</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  #game-container { position: relative; }
+
+  canvas {
+    border: 12px solid transparent;
+    border-image: repeating-linear-gradient(45deg,#ffd700 0,#ffd700 10px,#ff9800 10px,#ff9800 20px) 12;
+    display: block;
+  }
+
+  #score {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-size: 28px;
+    font-weight: bold;
+    color: yellow;
+    text-shadow: 2px 2px 5px #000;
+  }
+
+  #startText {
+    position: absolute;
+    top: 45%;
+    width: 100%;
+    text-align: center;
+    font-size: 32px;
+    color: #fff;
+    text-shadow: 3px 3px 6px #000;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  #gameOver {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #gameOverBox {
+    background: #fff;
+    padding: 25px 40px;
+    text-align: center;
+    border-radius: 12px;
+  }
+
+  button {
+    padding: 10px 20px;
+    font-size: 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #ff9800;
+    color: #fff;
+  }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+  <canvas id="game" width="400" height="600"></canvas>
+  <div id="score">0</div>
+  <div id="startText">START THE GAME</div>
+  <div id="gameOver">
+    <div id="gameOverBox">
+      <h1>GAME OVER</h1>
+      <p>Final Score: <span id="finalScore">0</span></p>
+      <button id="retry">Retry</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+
+  const birdImg = new Image();
+  // NOTE: local file URL – must exist on your computer
+  birdImg.src = 'https://wallpapers.com/images/hd/flappy-bird-character-illustration-tfhwubtt9cxlsebo.jpg';
+
+  const pipeImg = new Image();
+  // NOTE: local file URL – must exist on your computer
+  pipeImg.src = 'https://www.nicepng.com/png/full/38-388476_flappy-bird-pipes-png-bottle.png';
+
+  const bgImg = new Image();
+  bgImg.src = 'https://user-images.githubusercontent.com/18351809/46888871-624a3900-ce7f-11e8-808e-99fd90c8a3f4.png';
+
+  let bird, pipes, score, running, started, speed;
+
+  function resetGame() {
+    bird = { x: 80, y: 250, w: 40, h: 30, hitbox: 0.7, vel: 0 };
+    pipes = [];
+    score = 0;
+    speed = 2;
+    running = true;
+    started = false;
+    document.getElementById('score').textContent = 0;
+    document.getElementById('startText').style.display = 'block';
+    document.getElementById('gameOver').style.display = 'none';
+  }
+
+  function addPipe() {
+    const gap = 150;
+    const top = Math.random() * 200 + 50;
+    pipes.push({ x: canvas.width, top, passed: false });
+  }
+
+  function rectsOverlap(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function update() {
+    if (!running || !started) return;
+
+    bird.vel += 0.5;
+    bird.y += bird.vel;
+
+    if (bird.y < 0 || bird.y + bird.h > canvas.height) endGame();
+
+    if (pipes.length === 0 || pipes[pipes.length - 1].x < 220) addPipe();
+
+    pipes.forEach(p => {
+      p.x -= speed;
+
+      const hitboxShrink = 0.7;
+
+      const birdBox = {
+        x: bird.x + bird.w * (1 - bird.hitbox) / 2,
+        y: bird.y + bird.h * (1 - bird.hitbox) / 2,
+        w: bird.w * bird.hitbox,
+        h: bird.h * bird.hitbox
+      };
+
+      const pipeWidth = 42; // smaller hitbox than visual
+      const topPipe = { x: p.x + 9, y: 0, w: pipeWidth, h: p.top - 10 };
+      const bottomPipe = { x: p.x + 9, y: p.top + 160, w: pipeWidth, h: canvas.height };
+
+      if (rectsOverlap(birdBox, topPipe) || rectsOverlap(birdBox, bottomPipe)) endGame();
+
+      if (!p.passed && p.x + 60 < bird.x) {
+        p.passed = true;
+        score++;
+        speed += 0.1; // difficulty scaling
+        document.getElementById('score').textContent = score;
+      }
+    });
+
+    pipes = pipes.filter(p => p.x > -80);
+  }
+
+  function draw() {
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+    // Draw bird
+    ctx.drawImage(birdImg, bird.x, bird.y, bird.w, bird.h);
+
+    // Draw pipes (smooth Flappy Bird–style)
+    pipes.forEach(p => {
+      const pipeWidth = 60;
+      const gap = 150;
+
+      // Gradient pipe style
+      const grad = ctx.createLinearGradient(p.x, 0, p.x + pipeWidth, 0);
+      grad.addColorStop(0, '#2ecc71');
+      grad.addColorStop(0.5, '#27ae60');
+      grad.addColorStop(1, '#1e8449');
+      ctx.fillStyle = grad;
+
+      // Top pipe
+      ctx.fillRect(p.x, 0, pipeWidth, p.top);
+      ctx.fillStyle = '#1e8449';
+      ctx.fillRect(p.x - 4, p.top - 18, pipeWidth + 8, 18); // pipe lip
+
+      // Bottom pipe
+      ctx.fillStyle = grad;
+      ctx.fillRect(p.x, p.top + gap, pipeWidth, canvas.height);
+      ctx.fillStyle = '#1e8449';
+      ctx.fillRect(p.x - 4, p.top + gap, pipeWidth + 8, 18); // pipe lip
+    });
+  }
+
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function endGame() {
+    running = false;
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('gameOver').style.display = 'flex';
+  }
+
+  canvas.addEventListener('click', () => {
+    if (!started) {
+      started = true;
+      document.getElementById('startText').style.display = 'none';
+    }
+    bird.vel = -8;
+  });
+
+  document.getElementById('retry').onclick = resetGame;
+
+  resetGame();
+  loop();
+</script>
+</body>
+</html>

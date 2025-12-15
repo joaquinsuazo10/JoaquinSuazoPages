@@ -1,0 +1,96 @@
+body {
+margin: 0;
+font-family: 'Segoe UI', Tahoma, sans-serif;
+background-color: #f4f9ff;
+color: #222;
+}
+
+
+.navbar {
+position: fixed;
+top: 0;
+left: 0;
+background-color: #092947;
+padding: 10px 20px;
+z-index: 1000;
+}
+
+
+.navbar a {
+color: white;
+margin-right: 15px;
+text-decoration: none;
+font-weight: bold;
+}
+
+
+.navbar a:hover {
+text-decoration: underline;
+}
+
+
+.hero {
+background: linear-gradient(to right, #0c5061, #011a21);
+font-size: 1.5em;
+color: rgb(197, 168, 3);
+text-align: center;
+padding: 100px 20px 60px 20px;
+}
+
+.font1{
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    color: #f4c477;
+}
+
+
+.content, .image-section, .video-section, .tableau-section {
+padding: 40px;
+margin: 20px auto;
+max-width: 900px;
+background-color: white;
+border-radius: 12px;
+box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+
+.image-section img {
+width: 100%;
+border-radius: 12px;
+}
+
+.image-section2{
+    width: 100%;
+border-radius: 12px;
+padding: 40px;
+margin: 20px auto;
+max-width: 900px;
+background-color: white;
+border-radius: 12px;
+box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+
+.video-section iframe {
+width: 100%;
+border-radius: 12px;
+  text-align: center;
+  margin: 40px 0;
+}
+
+
+.footer {
+text-align: center;
+padding: 30px;
+background-color: #053663;
+color: white;
+}
+
+
+.footer a {
+color: #ffd700;
+}
+
+.lmessi {
+    font-family: 'Courier New', Courier, monospace;
+
+}
